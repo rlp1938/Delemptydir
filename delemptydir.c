@@ -46,7 +46,8 @@ static char *helpmsg =
 static void recursedir(char *topdir);
 static void dohelp(int forced);
 static void dorealpath(char *givenpath, char *resolvedpath);
-static int dirobjectcount(DIR *dp);
+static int dirobjectcount(const char *path);
+static DIR *do_opendir(const char *path);
 
 // Globals
 int verbosity;
@@ -121,11 +122,7 @@ void recursedir(char *path)
     DIR *dp;
     int objcount;
 
-    dp = opendir(path);
-    if (!(dp)) {
-        perror(path);
-        exit(EXIT_FAILURE);
-    }
+	dp = do_opendir(path);
 
     while ((de = readdir(dp))) {
         char newpath[PATH_MAX];
@@ -144,8 +141,8 @@ void recursedir(char *path)
             break;
 		} // switch()
 	} // while()
-	objcount = dirobjectcount(dp);
-	if (!objcount) {
+	objcount = dirobjectcount(path);
+	if (objcount == 0) {
 		if (rmdir(path) == -1) {
 			perror(path);
 		}
@@ -165,10 +162,14 @@ void dorealpath(char *givenpath, char *resolvedpath)
 	}
 } // dorealpath()
 
-int dirobjectcount(DIR *dp)
+int dirobjectcount(const char *path)
 {
+	DIR *dp;
 	struct dirent *de;
 	int objcount = 0;
+
+	dp = do_opendir(path);
+
 	while ((de = readdir(dp))) {
         if (strcmp(de->d_name, ".") == 0) continue;
         if (strcmp(de->d_name, "..") == 0) continue;
@@ -176,3 +177,14 @@ int dirobjectcount(DIR *dp)
 	}
 	return objcount;
 } // count objects belonging to a dir
+
+DIR *do_opendir(const char *path)
+{
+	// opendir with error handling
+	DIR *dp = opendir(path);
+    if (!(dp)) {
+        perror(path);
+        exit(EXIT_FAILURE);
+    }
+	return dp;
+} // do_opendir
