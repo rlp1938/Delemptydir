@@ -32,6 +32,7 @@
 #include <utime.h>
 #include <libgen.h>
 #include "fileutil.h"
+
 static char *helpmsg =
   "NAME\n\tdelemptydir - deletes empty directories\n\n."
   "SYNOPSIS"
@@ -39,12 +40,16 @@ static char *helpmsg =
   "\n\tDeletes empty dirs under the user input topdir\n"
   "\nOPTIONS\n"
   "\t-h outputs this help message.\n"
+  "\t-v verbose, send progress report to stderr.\n"
 ;
 
 static void recursedir(char *topdir);
 static void dohelp(int forced);
 static void dorealpath(char *givenpath, char *resolvedpath);
 static int dirobjectcount(DIR *dp);
+
+// Globals
+int verbosity;
 
 int main(int argc, char **argv)
 {
@@ -54,11 +59,15 @@ int main(int argc, char **argv)
 
 	// initialise defaults
     strcpy(topdir, getenv("HOME"));
+    verbosity = 0;
 
-    while((opt = getopt(argc, argv, ":ha:o:")) != -1) {
+    while((opt = getopt(argc, argv, ":hv")) != -1) {
         switch(opt){
         case 'h':
             dohelp(0);
+        break;
+        case 'v':
+            verbosity = 1;
         break;
         case ':':
             fprintf(stderr, "Option %c requires an argument\n",optopt);
@@ -111,15 +120,13 @@ void recursedir(char *path)
     struct dirent *de;
     DIR *dp;
     int objcount;
-    //FILE *fpo = fopen("shit.dat", "a");
 
     dp = opendir(path);
     if (!(dp)) {
         perror(path);
         exit(EXIT_FAILURE);
     }
-    //fprintf(fpo, "path: %s\n", path);
-    //fclose(fpo);
+
     while ((de = readdir(dp))) {
         char newpath[PATH_MAX];
         if (strcmp(de->d_name, ".") == 0) continue;
@@ -142,7 +149,10 @@ void recursedir(char *path)
 		if (rmdir(path) == -1) {
 			perror(path);
 		}
-		sync();	// make the next higher dir aware.
+		if (verbosity) {
+			fprintf(stderr, "Deleted: %s\n", path);
+		}
+		sync();	// make the next higher dir aware this deletion.
 	}
     closedir(dp);
 } // recursedir()
