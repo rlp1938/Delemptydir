@@ -163,7 +163,7 @@ void dorealpath(char *givenpath, char *resolvedpath)
 } // dorealpath()
 
 int dirobjectcount(const char *path)
-{
+{	// count objects belonging to a dir
 	DIR *dp;
 	struct dirent *de;
 	int objcount = 0;
@@ -177,7 +177,7 @@ int dirobjectcount(const char *path)
 	}
 	closedir(dp);
 	return objcount;
-} // count objects belonging to a dir
+} // dirobjectcount()
 
 DIR *do_opendir(const char *path)
 {
