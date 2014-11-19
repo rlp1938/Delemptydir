@@ -149,7 +149,7 @@ void recursedir(char *path)
 		if (verbosity) {
 			fprintf(stderr, "Deleted: %s\n", path);
 		}
-		sync();	// make the next higher dir aware this deletion.
+		sync();	// make the next higher dir aware of this deletion.
 	}
     closedir(dp);
 } // recursedir()
@@ -175,6 +175,7 @@ int dirobjectcount(const char *path)
         if (strcmp(de->d_name, "..") == 0) continue;
         objcount++;
 	}
+	closedir(dp);
 	return objcount;
 } // count objects belonging to a dir
 
