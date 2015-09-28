@@ -86,6 +86,8 @@ int main(int argc, char **argv)
     // 1.See if argv[1] exists.
     if ((argv[optind])) {
        strcpy(topdir, argv[optind]);  // default is /home/$USER
+		// Convert relative path to absolute if needed.
+		if (topdir[0] != '/') dorealpath(argv[optind], topdir);
     }
 
     // Check that the top dir is legitimate.
@@ -98,9 +100,6 @@ int main(int argc, char **argv)
         fprintf(stderr, "%s is not a directory!\n", topdir);
         exit(EXIT_FAILURE);
     }
-
-	// Convert relative path to absolute if needed.
-	if (topdir[0] != '/') dorealpath(argv[optind], topdir);
 
     recursedir(topdir);
 
